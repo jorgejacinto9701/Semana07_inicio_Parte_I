@@ -2,7 +2,6 @@ package controlador;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -23,10 +22,10 @@ import fabricas.Fabrica;
 @WebServlet("/crudCliente")
 public class CrudClienteServlet extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
 	private static Logger log = Logger.getLogger(CrudClienteServlet.class.getName());
 
-	private static final long serialVersionUID = 1L;
-
+	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		log.info(">>> CrudCliente  >> service");
 		String vmetodo = req.getParameter("metodo");
@@ -58,13 +57,17 @@ public class CrudClienteServlet extends HttpServlet {
 		String filtro = req.getParameter("filtro");
 		List<Cliente> lista = dao.listaCliente(filtro + "%");
 
+		// 2 Convertir las categorias en formato JSON
 		Gson gson = new Gson();
 		String json = gson.toJson(lista);
 
+		// 3 Se notifica al chrome el tipo de archivo
 		resp.setContentType("application/json;charset=UTF-8");
 
+		// 4 Se envía al chrome
 		PrintWriter out = resp.getWriter();
 		out.println(json);
+
 	}
 
 	protected void inserta(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -81,8 +84,6 @@ public class CrudClienteServlet extends HttpServlet {
 		objCliente.setNombre(vnombre);
 		objCliente.setDni(vdni);
 		objCliente.setCategoria(objCategoria);
-		objCliente.setEstado(1);
-		objCliente.setFechaRegistro(new Timestamp(System.currentTimeMillis()));
 		
 		Fabrica fabrica = Fabrica.getFabrica(Fabrica.MYSQL);
 		ClienteDAO dao = fabrica.getCliente();
@@ -92,11 +93,11 @@ public class CrudClienteServlet extends HttpServlet {
 		
 		Respuesta objRespuesta = new Respuesta();
 		if (insertados > 0) {
-			objRespuesta.setDatos(lista);
 			objRespuesta.setMensaje("Registro exitoso");
 		}else {
 			objRespuesta.setMensaje("Error en el registro");
 		}
+		objRespuesta.setDatos(lista);
 		
 		Gson gson = new Gson();
 		String json = gson.toJson(objRespuesta);
@@ -120,21 +121,20 @@ public class CrudClienteServlet extends HttpServlet {
 			throws ServletException, IOException {
 		log.info(">>> CrudCliente  >> eliminacionFisica");
 		
-		String idCliente = req.getParameter("idCliente");
-		
 		Fabrica fabrica = Fabrica.getFabrica(Fabrica.MYSQL);
 		ClienteDAO dao = fabrica.getCliente();
-	
-		int eliminados = dao.eliminaCliente(Integer.parseInt(idCliente));
+		
+		String id = req.getParameter("idCliente");
+		int eliminados = dao.eliminaCliente(Integer.parseInt(id));
 		List<Cliente> lista = dao.listaCliente("%");
 		
 		Respuesta objRespuesta = new Respuesta();
 		if (eliminados > 0) {
-			objRespuesta.setDatos(lista);
-			objRespuesta.setMensaje("Eliminación exitosa del cliente de ID : " + idCliente);
+			objRespuesta.setMensaje("Eliminación exitosa");
 		}else {
-			objRespuesta.setMensaje("Error en la eliminación");
+			objRespuesta.setMensaje("Error al eliminar");
 		}
+		objRespuesta.setDatos(lista);
 		
 		Gson gson = new Gson();
 		String json = gson.toJson(objRespuesta);
@@ -143,7 +143,9 @@ public class CrudClienteServlet extends HttpServlet {
 		
 		PrintWriter out = resp.getWriter();
 		out.println(json);
-		
 	}
 
 }
+
+
+
