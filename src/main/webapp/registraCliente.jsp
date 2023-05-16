@@ -88,7 +88,7 @@ $(document).ready(function() {
         		selector: "#id_categoria",
         		validators : {
         			notEmpty: {
-                        message: 'El correo es requerido'
+                        message: 'La categoría es requerida'
                     },
         		}
         	},        	
